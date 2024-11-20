@@ -4,6 +4,18 @@
 @tailwind utilities;
 
 /* For AppBar */
+#camera-grid {
+  display: grid;
+  gap: 5px;
+  justify-content: center;
+}
+video {
+  width: 320px;
+  height: 240px;
+  object-fit: cover;
+  background: #333;
+}
+
 .draggable {
     -webkit-user-select: none;
     -webkit-app-region: drag;

@@ -42,6 +42,49 @@ function App() {
       });
   }, [fromMain, isSent]);
 
+  async function detectCameras() {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    return devices.filter(device => device.kind === 'videoinput');
+  }
+
+  async function createCameraStream(deviceId:any) {
+    return await navigator.mediaDevices.getUserMedia({
+      video: { deviceId: { exact: deviceId } },
+      audio: false,
+    });
+  }
+
+  function arrangeGrid(cameraCount:number) {
+    const grid = document.getElementById('camera-grid');
+    const cols = Math.ceil(Math.sqrt(cameraCount));
+    const rows = Math.ceil(cameraCount / cols);
+    if(grid!==null){
+      grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+    }
+  }
+
+  async function start() {
+    const cameras = await detectCameras();
+    console.log("Detected Cameras:", cameras);
+
+    const cameraGrid = document.getElementById('camera-grid');
+    arrangeGrid(cameras.length);
+
+    cameras.forEach(async (camera) => {
+      const videoElement = document.createElement('video');
+      videoElement.setAttribute('autoplay', "true");
+      videoElement.setAttribute('muted', "true");
+      videoElement.setAttribute('playsinline', "true");
+
+      const stream = await createCameraStream(camera.deviceId);
+      videoElement.srcObject = stream;
+
+      if(cameraGrid!==null)
+        cameraGrid.appendChild(videoElement);
+    });
+  }
+
   return (
     <div className="flex flex-col">
       {window.Main && (
@@ -54,38 +97,13 @@ function App() {
           <SwitchDarkMode />
           <SelectLanguage />
         </div>
-        <div className="flex flex-col justify-center items-center h-full pt-32 space-y-4">
-          <h1 className="text-2xl dark:text-gray-200">Vite + React + Typescript + Electron + Tailwind</h1>
+        <div className="flex flex-col justify-center items-center h-full pt-32 space-y-4" id="camera-grid">
           <button
-            className="bg-yellow-400 py-2 px-4 rounded focus:outline-none shadow hover:bg-yellow-200 dark:text-black"
-            onClick={handleToggle}
+            onClick={start}
+            className=" bg-green-400 rounded px-4 py-0 focus:outline-none hover:bg-green-300 dark:text-black"
           >
-            {t('common.clickMe')}
+            {t('common.cameras')}
           </button>
-          {isOpen && (
-            <div className="flex flex-col space-y-4 items-center">
-              <div className="flex space-x-3">
-                <h1 className="text-xl dark:text-gray-50">{t('common.welcome')}</h1>
-                <button
-                  onClick={sendMessageToElectron}
-                  className=" bg-green-400 rounded px-4 py-0 focus:outline-none hover:bg-green-300 dark:text-black"
-                >
-                  {t('common.send')}
-                </button>
-              </div>
-              {isSent && (
-                <div>
-                  <h4 className="dark:text-green-500 text-green-600">{t('common.messageSent')}</h4>
-                </div>
-              )}
-              {fromMain && (
-                <div>
-                  {' '}
-                  <h4 className="dark:text-yellow-200 text-yellow-800">{t(fromMain)}</h4>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </div>
